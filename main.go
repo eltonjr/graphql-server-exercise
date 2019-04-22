@@ -20,10 +20,14 @@ func main() {
 
 	router.RegisterIndex(r)
 	router.RegisterREST(r)
+	err := router.RegisterGraphQL(r)
+	if err != nil {
+		fmt.Printf("could not register graphql endpoints: %v\n", err)
+	}
 
 	fmt.Printf("Server running at: %s\n", addr)
 
-	err := http.ListenAndServe(addr, r)
+	err = http.ListenAndServe(addr, r)
 	if err != nil {
 		fmt.Printf("Server stopped: %v\n", err)
 	}

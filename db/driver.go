@@ -18,7 +18,11 @@ func (dd *DriverDao) GetDrivers() ([]*model.Driver, error) {
 }
 
 func (dd *DriverDao) GetSingleDriver(id string) (*model.Driver, error) {
-	return nil, errors.New("TODO: method not implemented")
+	return &model.Driver{
+		ID:      "1",
+		Name:    "Kimi Raikkonen",
+		Country: "Finland",
+	}, nil
 }
 
 func (dd *DriverDao) CreateDriver(*model.Driver) (*model.Driver, error) {
