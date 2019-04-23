@@ -44,10 +44,15 @@ func (router *Router) RegisterGraphQL(r *httprouter.Router) error {
 				Description: "Get driver by id",
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
-						Type: graphql.String,
+						Type: graphql.NewNonNull(graphql.String),
 					},
 				},
 				Resolve: router.GetSingleDriverResolver,
+			},
+			"getDrivers": &graphql.Field{
+				Type:        graphql.NewList(model.DriverType),
+				Description: "Get list of drivers",
+				Resolve:     router.GetDriversResolver,
 			},
 		},
 	})
@@ -55,7 +60,45 @@ func (router *Router) RegisterGraphQL(r *httprouter.Router) error {
 	mutationType := graphql.NewObject(graphql.ObjectConfig{
 		Name: "Mutations",
 		Fields: graphql.Fields{
-			"dummy": nil,
+			"create": &graphql.Field{
+				Type:        model.DriverType,
+				Description: "Create a driver",
+				Args: graphql.FieldConfigArgument{
+					"name": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+					"country": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+				},
+				Resolve: router.CreateDriverResolver,
+			},
+			"update": &graphql.Field{
+				Type:        model.DriverType,
+				Description: "Update driver by id",
+				Args: graphql.FieldConfigArgument{
+					"id": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+					"name": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+					"country": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+				},
+				Resolve: router.UpdateDriverResolver,
+			},
+			"delete": &graphql.Field{
+				Type:        model.DriverType,
+				Description: "Delete driver by id",
+				Args: graphql.FieldConfigArgument{
+					"id": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+				},
+				Resolve: router.DeleteDriverResolver,
+			},
 		},
 	})
 
