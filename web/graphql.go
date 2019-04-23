@@ -5,12 +5,14 @@ import (
 	"fmt"
 
 	"github.com/graphql-go/graphql"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
+	"github.com/eltonjr/graphql-server-exercise/db"
 	"github.com/eltonjr/graphql-server-exercise/model"
 )
 
 func (router *Router) GetDriversResolver(p graphql.ResolveParams) (interface{}, error) {
-	return router.driverDao.GetDrivers()
+	return db.GetDrivers(0, 10) // TODO move this to somewhere else
 }
 
 func (router *Router) GetSingleDriverResolver(p graphql.ResolveParams) (interface{}, error) {
@@ -28,7 +30,12 @@ func (router *Router) GetSingleDriverResolver(p graphql.ResolveParams) (interfac
 		return nil, errors.New("id must not be empty")
 	}
 
-	return router.driverDao.GetSingleDriver(idStr)
+	idHex, err := primitive.ObjectIDFromHex(idStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid driver id: %v", err)
+	}
+
+	return db.GetSingleDriver(idHex)
 }
 
 func (router *Router) CreateDriverResolver(p graphql.ResolveParams) (interface{}, error) {
@@ -40,7 +47,7 @@ func (router *Router) CreateDriverResolver(p graphql.ResolveParams) (interface{}
 		Country: country,
 	}
 
-	return router.driverDao.CreateDriver(driver)
+	return db.CreateDriver(driver)
 }
 
 func (router *Router) UpdateDriverResolver(p graphql.ResolveParams) (interface{}, error) {
@@ -48,16 +55,28 @@ func (router *Router) UpdateDriverResolver(p graphql.ResolveParams) (interface{}
 	name, _ := p.Args["name"].(string)
 	country, _ := p.Args["country"].(string)
 
+	hexID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid drive id '%s': %v", id, err)
+	}
+
 	driver := &model.Driver{
-		ID:      id,
+		ID:      hexID,
 		Name:    name,
 		Country: country,
 	}
 
-	return router.driverDao.UpdateDriver(driver)
+	return db.UpdateDriver(driver)
 }
 
 func (router *Router) DeleteDriverResolver(p graphql.ResolveParams) (interface{}, error) {
 	id, _ := p.Args["id"].(string)
-	return router.driverDao.DeleteDriver(id)
+
+	idHex, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid driver id: %v", err)
+	}
+
+	err = db.DeleteDriver(idHex)
+	return nil, err
 }

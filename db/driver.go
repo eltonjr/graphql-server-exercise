@@ -1,56 +1,106 @@
 package db
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/eltonjr/graphql-server-exercise/model"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type DriverDao struct {
-	dummyData []*model.Driver
-}
+const driversCollection = "drivers"
 
-func NewDriverDao() *DriverDao {
-	return &DriverDao{
-		dummyData: []*model.Driver{
-			&model.Driver{
-				ID:      "1",
-				Name:    "Kimi Raikkonen",
-				Country: "Finland",
-			},
-			&model.Driver{
-				ID:      "2",
-				Name:    "Romain Grosjean",
-				Country: "France",
-			},
-			&model.Driver{
-				ID:      "3",
-				Name:    "Nico Hulkenberg",
-				Country: "Germany",
-			},
-			&model.Driver{
-				ID:      "4",
-				Name:    "Daniel Riccardo",
-				Country: "Australia",
-			},
-		},
+func GetDrivers(skip, limit int) ([]*model.Driver, error) {
+	db, err := getDB()
+	if err != nil {
+		return nil, err
 	}
+
+	opt := options.Find()
+	opt.SetSkip(int64(skip))
+	opt.SetLimit(int64(limit))
+
+	cursor, err := db.Collection(driversCollection).Find(context.Background(), bson.M{}, opt)
+	if err != nil {
+		return nil, fmt.Errorf("could not find documents in '%s' collection: %v", driversCollection, err)
+	}
+
+	drivers := []*model.Driver{}
+	for cursor.Next(context.Background()) {
+		curr := &model.Driver{}
+		err := cursor.Decode(curr)
+		if err != nil {
+			return nil, fmt.Errorf("error decoding driver: %v", err)
+		}
+		drivers = append(drivers, curr)
+	}
+
+	return drivers, nil
 }
 
-func (dd *DriverDao) GetDrivers() ([]*model.Driver, error) {
-	return dd.dummyData, nil
+func GetSingleDriver(id primitive.ObjectID) (*model.Driver, error) {
+	db, err := getDB()
+	if err != nil {
+		return nil, err
+	}
+
+	var driver model.Driver
+
+	filter := bson.M{"_id": id}
+
+	err = db.Collection(driversCollection).FindOne(context.Background(), filter).Decode(&driver)
+	if err != nil {
+		return nil, fmt.Errorf("could not find driver with id '%s': %v", id, err)
+	}
+
+	return &driver, nil
 }
 
-func (dd *DriverDao) GetSingleDriver(id string) (*model.Driver, error) {
-	return dd.dummyData[0], nil
+func CreateDriver(driver *model.Driver) (*model.Driver, error) {
+	db, err := getDB()
+	if err != nil {
+		return nil, err
+	}
+
+	driver.ID = primitive.NewObjectID()
+
+	inserted, err := db.Collection(driversCollection).InsertOne(context.Background(), driver)
+	if err != nil {
+		return nil, fmt.Errorf("could not insert driver: %v", err)
+	}
+
+	driver.ID = inserted.InsertedID.(primitive.ObjectID)
+
+	return driver, nil
 }
 
-func (dd *DriverDao) CreateDriver(*model.Driver) (*model.Driver, error) {
-	return dd.dummyData[1], nil
+func UpdateDriver(driver *model.Driver) (*model.Driver, error) {
+	db, err := getDB()
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"_id": driver.ID}
+
+	_, err = db.Collection(driversCollection).UpdateOne(context.Background(), filter, driver)
+	if err != nil {
+		return nil, fmt.Errorf("could not update driver: %v", err)
+	}
+
+	return driver, nil
 }
 
-func (dd *DriverDao) UpdateDriver(*model.Driver) (*model.Driver, error) {
-	return dd.dummyData[2], nil
-}
+func DeleteDriver(id primitive.ObjectID) error {
+	db, err := getDB()
+	if err != nil {
+		return err
+	}
 
-func (dd *DriverDao) DeleteDriver(id string) (*model.Driver, error) {
-	return dd.dummyData[3], nil
+	filter := bson.M{"_id": id}
+
+	_, err = db.Collection(driversCollection).DeleteOne(context.Background(), filter)
+
+	return err
 }

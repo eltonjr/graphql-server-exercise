@@ -6,7 +6,6 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/eltonjr/graphql-server-exercise/db"
 	"github.com/eltonjr/graphql-server-exercise/web"
 )
 
@@ -15,8 +14,7 @@ func main() {
 
 	r := httprouter.New()
 
-	driverDao := db.NewDriverDao()
-	router := web.NewRouter(driverDao)
+	router := web.NewRouter()
 
 	router.RegisterIndex(r)
 	router.RegisterREST(r)

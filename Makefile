@@ -1,3 +1,5 @@
+include .env
+export $(shell sed 's/=.*//' .env)
 
 .DEFAULT_GOAL:=help
 
@@ -12,3 +14,11 @@ build: ## builds the project using the 'go' command
 .PHONY: run
 run: ## runs the project
 	go run main.go
+
+.PHONY: run-mongo
+run-mongo: ## helper command to turn on a mongodb
+	docker run --rm -d -p 27017:27017 --name mongodb mongo:3.4
+
+.PHONY: stop-mongo
+stop-mongo: ## turns off the mongodb
+	docker stop mongodb

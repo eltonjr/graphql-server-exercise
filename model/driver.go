@@ -1,12 +1,15 @@
 package model
 
-import "github.com/graphql-go/graphql"
+import (
+	"github.com/graphql-go/graphql"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // Driver represents a F1 driver
 type Driver struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Country string `json:"country"`
+	ID      primitive.ObjectID `json:"id" bson:"_id"`
+	Name    string             `json:"name" bson:"name"`
+	Country string             `json:"country" bson:"country"`
 }
 
 var DriverType *graphql.Object

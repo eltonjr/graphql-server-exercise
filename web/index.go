@@ -8,19 +8,15 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/eltonjr/graphql-server-exercise/db"
 	"github.com/eltonjr/graphql-server-exercise/model"
 )
 
 type Router struct {
-	driverDao     *db.DriverDao
 	graphqlSchema graphql.Schema
 }
 
-func NewRouter(driverDao *db.DriverDao) *Router {
-	return &Router{
-		driverDao: driverDao,
-	}
+func NewRouter() *Router {
+	return &Router{}
 }
 
 func (router *Router) RegisterIndex(r *httprouter.Router) {

@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/julienschmidt/httprouter"
 
+	"github.com/eltonjr/graphql-server-exercise/db"
 	"github.com/eltonjr/graphql-server-exercise/model"
 )
 
 func (router *Router) GetDriversHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	drivers, err := router.driverDao.GetDrivers()
+	drivers, err := db.GetDrivers(0, 10) // TODO move this to somewhere else
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error getting drivers: %v", err)
@@ -25,7 +28,15 @@ func (router *Router) GetDriversHandler(w http.ResponseWriter, r *http.Request, 
 
 func (router *Router) GetSingleDriverHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id := p.ByName("id")
-	driver, err := router.driverDao.GetSingleDriver(id)
+
+	idHex, err := primitive.ObjectIDFromHex(p.ByName("id"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "invalid driver id: %v", err)
+		return
+	}
+
+	driver, err := db.GetSingleDriver(idHex)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error getting driver with id '%s': %v", id, err)
@@ -38,7 +49,7 @@ func (router *Router) GetSingleDriverHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (router *Router) CreateDriverHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	var driver *model.Driver
+	driver := &model.Driver{}
 	err := json.NewDecoder(r.Body).Decode(driver)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -47,7 +58,7 @@ func (router *Router) CreateDriverHandler(w http.ResponseWriter, r *http.Request
 	}
 	defer r.Body.Close()
 
-	driver, err = router.driverDao.CreateDriver(driver)
+	driver, err = db.CreateDriver(driver)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error saving driver: %v", err)
@@ -69,9 +80,15 @@ func (router *Router) UpdateDriverHandler(w http.ResponseWriter, r *http.Request
 	}
 	defer r.Body.Close()
 
-	driver.ID = p.ByName("id")
+	id, err := primitive.ObjectIDFromHex(p.ByName("id"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "invalid driver id: %v", err)
+		return
+	}
+	driver.ID = id
 
-	driver, err = router.driverDao.UpdateDriver(driver)
+	driver, err = db.UpdateDriver(driver)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error updating driver: %v", err)
@@ -85,7 +102,15 @@ func (router *Router) UpdateDriverHandler(w http.ResponseWriter, r *http.Request
 
 func (router *Router) DeleteDriverHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id := p.ByName("id")
-	driver, err := router.driverDao.DeleteDriver(id)
+
+	idHex, err := primitive.ObjectIDFromHex(p.ByName("id"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "invalid driver id: %v", err)
+		return
+	}
+
+	err = db.DeleteDriver(idHex)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error getting driver with id '%s': %v", id, err)
@@ -94,5 +119,5 @@ func (router *Router) DeleteDriverHandler(w http.ResponseWriter, r *http.Request
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-type", "application/json")
-	json.NewEncoder(w).Encode(driver)
+	json.NewEncoder(w).Encode("")
 }
