@@ -13,6 +13,7 @@ type Driver struct {
 }
 
 var DriverType *graphql.Object
+var DriverSeasonType *graphql.Object
 
 func init() {
 	DriverType = graphql.NewObject(graphql.ObjectConfig{
@@ -33,6 +34,23 @@ func init() {
 				Name:        "country",
 				Type:        graphql.String,
 				Description: "Driver's birth place",
+			},
+		},
+	})
+
+	DriverSeasonType = graphql.NewObject(graphql.ObjectConfig{
+		Name:        "DriverSeason",
+		Description: "Dummy object to join the season type and the team type inside the DriverType",
+		Fields: graphql.Fields{
+			"season": &graphql.Field{
+				Name:        "season",
+				Type:        SeasonType,
+				Description: "The season this driver has driven",
+			},
+			"team": &graphql.Field{
+				Name:        "team",
+				Type:        TeamType,
+				Description: "The team this driver has driven for",
 			},
 		},
 	})
