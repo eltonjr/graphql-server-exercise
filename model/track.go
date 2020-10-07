@@ -6,16 +6,18 @@ import (
 
 // Track represents a F1 track
 type Track struct {
-	ID      string `json:"id" bson:"_id"`
-	Name    string `json:"name" bson:"name"`
-	Country string `json:"country" bson:"country"`
-	GPs     []GP   `json:"gps" bson:"gps"`
+	ID      string   `json:"id" bson:"_id"`
+	Name    string   `json:"name" bson:"name"`
+	Country string   `json:"country" bson:"country"`
+	Years   []string `json:"years" bson:"years"`
+	GPs     []GP     `json:"gps" bson:"-"`
 }
 
 // GP represents a F1 GP - a track race in a given year
 type GP struct {
 	Season  string     `json:"season" bson:"_id"`
-	Track   string     `json:"track" bson:"track"`
+	TrackID string     `json:"-" bson:"trackId"`
+	Track   Track      `json:"track" bson:"-"`
 	Results []Position `json:"results" bson:"results"`
 }
 
@@ -41,6 +43,11 @@ func init() {
 				Name:        "country",
 				Type:        graphql.String,
 				Description: "Track's country",
+			},
+			"years": &graphql.Field{
+				Name:        "years",
+				Type:        graphql.NewList(graphql.String),
+				Description: "Track's years",
 			},
 			"gps": &graphql.Field{
 				Name:        "gps",

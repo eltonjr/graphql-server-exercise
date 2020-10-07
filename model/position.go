@@ -7,10 +7,10 @@ import (
 
 // Position represents a F1 Position
 type Position struct {
-	ID     primitive.ObjectID `json:"id" bson:"_id"`
-	Driver Driver             `json:"driver" bson:"driver"`
-	GP     GP                 `json:"gp" bson:"gp"`
-	Number int                `json:"number" bson:"number"`
+	ID       primitive.ObjectID `json:"id" bson:"_id"`
+	DriverID string             `json:"-" bson:"driverId"`
+	Driver   Driver             `json:"driver" bson:"-"`
+	Number   int                `json:"number" bson:"number"`
 }
 
 var PositionType *graphql.Object
@@ -29,11 +29,6 @@ func init() {
 				Name:        "driver",
 				Type:        DriverType,
 				Description: "The driver who got this position",
-			},
-			"gp": &graphql.Field{
-				Name:        "gp",
-				Type:        GPType,
-				Description: "The gp the driver got this position",
 			},
 			"number": &graphql.Field{
 				Name:        "number",

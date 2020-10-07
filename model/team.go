@@ -8,9 +8,15 @@ import (
 
 // Team represents a F1 scuderia
 type Team struct {
-	ID        string     `json:"id"`
-	Name      string     `json:"name"`
-	CreatedAt *time.Time `json:"createdAt"`
+	ID        string       `json:"id"`
+	Name      string       `json:"name"`
+	CreatedAt *time.Time   `json:"createdAt"`
+	Seasons   []TeamSeason `json:"seasons" bson:"seasons"`
+}
+
+type TeamSeason struct {
+	Year   string `json:"year" bson:"year"`
+	Driver string `json:"driver" bson:"driver"`
 }
 
 var TeamType *graphql.Object

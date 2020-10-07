@@ -10,6 +10,12 @@ type Driver struct {
 	ID      primitive.ObjectID `json:"id" bson:"_id"`
 	Name    string             `json:"name" bson:"name"`
 	Country string             `json:"country" bson:"country"`
+	Seasons []DriverSeason     `json:"seasons" bson:"seasons"`
+}
+
+type DriverSeason struct {
+	Year string `json:"year" bson:"year"`
+	Team string `json:"team" bson:"team"`
 }
 
 var DriverType *graphql.Object
